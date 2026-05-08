@@ -5,8 +5,7 @@ const KNOWLEDGE: Record<string, string> = {
   erp: "ERP est un système qui centralise la gestion des processus métier : finance, CRM, RH, stock.",
   iot: "L’IoT connecte des objets physiques à Internet pour collecter et analyser des données.",
   arduino: "Arduino est une plateforme open-source pour créer des projets électroniques et IoT.",
-  services:
-    "SDS propose des solutions ERP, IoT, automatisation et développement logiciel sur mesure.",
+  services: "SDS propose des solutions ERP, IoT, automatisation et développement logiciel sur mesure.",
 };
 
 export async function POST(req: Request) {
@@ -26,13 +25,20 @@ export async function POST(req: Request) {
     }
 
     /* 2️⃣ Try AI (but never block) */
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    // NOUVEAUTÉ : Correction du modèle (gemini-1.5-flash) car 2.5 n'existe pas
+    // NOUVEAUTÉ : Alerte si la clé est manquante dans Vercel
+    if (!apiKey) {
+      return NextResponse.json({ 
+        reply: "🤖 La clé API est absente. Vérifie la variable GEMINI_API_KEY dans Vercel." 
+      });
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000); // NOUVEAUTÉ : Timeout un peu plus long (8s)
+
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" +
-        process.env.GEMINI_API_KEY,
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey,
       {
         method: "POST",
         signal: controller.signal,
@@ -42,16 +48,15 @@ export async function POST(req: Request) {
             {
               parts: [
                 {
-                  text:
-                    "You are SDS NEXUS AI 🤖, an expert in ERP, IoT and Arduino. Answer briefly and clearly in French.",
+                  text: "You are SDS NEXUS AI 🤖, an expert in ERP, IoT and Arduino. Answer briefly and clearly in French.",
                 },
                 { text: message },
               ],
             },
           ],
           generationConfig: {
-            maxOutputTokens: 512, // NOUVEAUTÉ : Augmenté pour des réponses plus complètes
-            temperature: 0.7,    // NOUVEAUTÉ : Plus de liberté et de naturel dans les réponses
+            maxOutputTokens: 512, 
+            temperature: 0.7,    
           },
         }),
       }
@@ -61,24 +66,26 @@ export async function POST(req: Request) {
 
     if (response.ok) {
       const data = await response.json();
-      const text =
-        data?.candidates?.[0]?.content?.parts
+      const text = data?.candidates?.[0]?.content?.parts
           ?.map((p: any) => p.text)
           .join("")
           .trim();
 
       if (text) return NextResponse.json({ reply: text });
+    } else {
+       // NOUVEAUTÉ : Voir l'erreur exacte de Google (utile si la clé est invalide)
+       const errorData = await response.json();
+       return NextResponse.json({ reply: `🤖 Erreur Google: ${errorData.error?.message || "inconnue"}` });
     }
 
-    /* 3️⃣ Smart fallback (NEVER SILENT) */
     return NextResponse.json({
-      reply:
-        "🤖 Je suis toujours là ! Posez-moi une question sur ERP, IoT, Arduino ou les services SDS.",
+      reply: "🤖 Je suis toujours là ! Posez-moi une question sur ERP, IoT, Arduino ou les services SDS.",
     });
-  } catch {
+
+  } catch (error: any) {
+    // NOUVEAUTÉ : Le catch affiche maintenant l'erreur réelle au lieu de la phrase générique
     return NextResponse.json({
-      reply:
-        "🤖 Je suis disponible ! Parlez-moi de ERP, IoT, Arduino ou de votre projet.",
+      reply: "🤖 Erreur technique : " + (error.message || "Connexion perdue"),
     });
   }
 }
