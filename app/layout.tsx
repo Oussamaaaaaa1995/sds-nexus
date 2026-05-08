@@ -18,6 +18,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SDS NEXUS | Solutions IoT & ERP Industrielles",
   description: "Plateforme de gestion intelligente et connectivité Arduino pour l'industrie 4.0",
+  // NOUVEAUTÉ : Ajout du support des icônes pour le branding Nexus
+  icons: {
+    icon: "/logo-nexus.png",
+  },
 };
 
 export default function RootLayout({
@@ -28,16 +32,19 @@ export default function RootLayout({
   return (
     // Ajout du suppressHydrationWarning ici pour éviter l'erreur de tout à l'heure
     <html lang="fr" className="h-full" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
-        {/* Barre de navigation fixe */}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-white text-nexus-dark`}>
+        
+        {/* NOUVEAUTÉ : La Navbar peut être masquée sur certaines routes si besoin, 
+            mais ici elle reste fixe comme tu l'as demandé */}
         <Navbar />
 
         {/* Un seul bloc main pour le contenu dynamique */}
-        <main className="flex-grow pt-20">
+        {/* NOUVEAUTÉ : Ajout d'une classe de transition fluide pour le chargement des pages */}
+        <main className="flex-grow pt-20 transition-all duration-300">
           {children}
         </main>
 
-        {/* Assistant Chatbot */}
+        {/* Assistant Chatbot intelligent SDS NEXUS */}
         <Chatbot />
 
         {/* Pied de page */}

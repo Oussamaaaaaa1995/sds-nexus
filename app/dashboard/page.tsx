@@ -1,27 +1,49 @@
+"use client";
+import React, { useState, useEffect } from "react";
 import { Activity, Database, Server, Zap } from "lucide-react";
 
 export default function Dashboard() {
+  // NOUVEAUTÉ : État pour les données en temps réel
+  const [liveData, setLiveData] = useState({
+    consumption: 1.2,
+    activeSystems: 124,
+    temp: 24
+  });
+
+  // NOUVEAUTÉ : Simulation de réception de données IoT
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLiveData({
+        consumption: +(1.0 + Math.random() * 0.5).toFixed(2),
+        activeSystems: Math.floor(120 + Math.random() * 10),
+        temp: Math.floor(22 + Math.random() * 5)
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="p-8 bg-nexus-light min-h-screen">
       <h1 className="text-3xl font-bold text-nexus-dark mb-8">Tableau de bord Nexus</h1>
       
       {/* Statistiques en temps réel */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-        <StatCard icon={<Activity className="text-green-500" />} label="Systèmes Actifs" value="124" />
-        <StatCard icon={<Zap className="text-nexus-blue" />} label="Consommation" value="1.2 kW" />
-        <StatCard icon={<Server className="text-purple-500" />} label="Serveurs" value="99.9%" />
+        <StatCard icon={<Activity className="text-green-500" />} label="Systèmes Actifs" value={liveData.activeSystems.toString()} />
+        <StatCard icon={<Zap className="text-nexus-blue" />} label="Consommation" value={`${liveData.consumption} kW`} />
+        <StatCard icon={<Server className="text-purple-500" />} label="Température" value={`${liveData.temp}°C`} />
         <StatCard icon={<Database className="text-orange-500" />} label="Données" value="4.2 TB" />
       </div>
 
-      {/* Zone de contenu principal */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h2 className="font-bold mb-4">Flux d'activité</h2>
+          <h2 className="font-bold mb-4">Flux d'activité IoT (Live)</h2>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
                 <div className="w-2 h-2 bg-nexus-blue rounded-full animate-pulse"></div>
-                <p className="text-sm text-gray-600">Connexion établie avec le capteur #00{i}</p>
+                <p className="text-sm text-gray-600">
+                  {i === 1 ? `Capteur #${liveData.temp} synchronisé` : `Connexion établie avec le nœud Arduino #00${i}`}
+                </p>
               </div>
             ))}
           </div>
