@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
     // NOUVEAUTÉ : Correction du modèle (gemini-1.5-flash) car 2.5 n'existe pas
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" +
         process.env.GEMINI_API_KEY,
       {
         method: "POST",
